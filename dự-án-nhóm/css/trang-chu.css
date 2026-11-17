@@ -137,8 +137,15 @@ html {
     scroll-margin-top: 90px;
 }
 
-.memories {
+.features {
+    padding: 70px 8% 80px;
+    text-align: center;
+    background: #FFF7ED;
     scroll-margin-top: 90px;
+}
+
+.features-forum {
+    background: #FFFFFF;
 }
 
 .section-tabs {
@@ -391,131 +398,68 @@ html {
     color: var(--cam);
 }
 
-/* Khu vực giới thiệu bộ sưu tập khoảnh khắc. */
-.memories {
-    padding: 20px 8% 80px;
-    text-align: center;
-    background: #eee9dd;
-}
-
-.memory-cards {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 25px;
-    margin-top: 40px;
-}
-
-/* Mỗi thẻ là nút bấm mở hộp thoại chi tiết tương ứng. */
-.memory-card {
-    display: block;
-    width: 100%;
-    overflow: hidden;
-    padding: 0;
-    border: 0;
-    border-radius: 20px;
+.feature-card {
+    display: flex;
+    align-items: flex-start;
+    max-width: 1000px;
+    gap: 22px;
+    margin: 38px auto 0;
+    padding: 30px;
+    border: 1px solid #F3E2D2;
+    border-radius: 22px;
     background: white;
+    box-shadow: 0 10px 28px rgba(90, 47, 18, 0.07);
     text-align: left;
-    color: inherit;
-    font: inherit;
-    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.07);
-    cursor: pointer;
-    transition: transform 0.3s, box-shadow 0.3s;
 }
 
-.memory-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 15px 30px rgba(249, 115, 22, 0.16);
-}
-
-/* Hiển thị viền nhận biết khi người dùng điều khiển thẻ hoặc nút đóng bằng bàn phím. */
-.memory-card:focus-visible,
-.memory-dialog-close:focus-visible {
-    outline: 3px solid var(--cam);
-    outline-offset: 3px;
-}
-
-.memory-icon {
+.feature-icon {
     display: grid;
-    min-height: 180px;
+    width: 64px;
+    height: 64px;
+    flex: 0 0 64px;
     place-items: center;
-    background: linear-gradient(135deg, #FFF0DD, #FDBA74);
-    font-size: 64px;
+    border-radius: 20px;
+    background: linear-gradient(135deg, #FFF0DD, #FED7AA);
+    font-size: 32px;
 }
 
-/* Tên khoảnh khắc hiển thị dưới icon trong từng thẻ. */
-.memory-card-label {
-    display: block;
-    padding: 18px 22px;
-    color: var(--cam);
+.feature-copy {
+    min-width: 0;
+}
+
+.feature-label {
+    color: #C75C12;
+    font-size: 12px;
     font-weight: bold;
-    text-align: center;
+    letter-spacing: 1.5px;
 }
 
-/* Hộp thoại chi tiết, được căn giữa màn hình bằng thuộc tính mặc định của dialog. */
-.memory-dialog {
-    position: fixed;
-    width: min(90vw, 760px);
-    max-width: none;
-    max-height: 90vh;
-    margin: auto;
-    padding: 28px;
-    border: 0;
-    border-radius: 18px;
-    color: var(--chu);
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+.feature-copy h3 {
+    margin: 8px 0 10px;
+    color: #292524;
+    font-size: 22px;
 }
 
-/* Làm tối phần nền phía sau để tập trung sự chú ý vào hộp thoại. */
-.memory-dialog::backdrop {
-    background: rgba(41, 37, 36, 0.75);
-}
-
-.memory-dialog h3 {
-    margin: 0 0 6px;
-    color: var(--cam);
-    text-align: center;
-}
-
-.memory-dialog-description {
+.feature-copy p {
+    margin: 0 0 18px;
     color: #78716C;
-    text-align: left;
+    line-height: 1.75;
 }
 
-/* Lưới ảnh chi tiết; tự tạo số cột theo chiều rộng và cuộn khi danh sách quá dài. */
-.memory-dialog-gallery {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(120px, 180px));
-    gap: 12px;
-    max-height: 55vh;
-    margin-top: 14px;
-    overflow-y: auto;
-    justify-content: start;
+.feature-link {
+    color: #C75C12;
+    font-weight: bold;
 }
 
-.memory-dialog-image {
-    display: block;
-    width: 100%;
-    height: 140px;
-    object-fit: contain;
-    border-radius: 12px;
-    background: #FFF7ED;
-    justify-self: start;
+.feature-link:hover {
+    color: #9A3412;
+    text-decoration: underline;
 }
 
-/* Nút đóng nằm ở góc trên bên phải hộp thoại. */
-.memory-dialog-close {
-    position: absolute;
-    top: 8px;
-    right: 12px;
-    width: 36px;
-    height: 36px;
-    border: 0;
-    border-radius: 50%;
-    background: white;
-    color: var(--chu);
-    font-size: 28px;
-    line-height: 1;
-    cursor: pointer;
+.feature-link:focus-visible {
+    outline: 3px solid #FDBA74;
+    outline-offset: 3px;
+    border-radius: 3px;
 }
 
 /* Chuyển động lên xuống nhẹ cho logo trong phần hero. */
@@ -589,9 +533,8 @@ html {
         font-size: 23px;
     }
 
-    /* Xếp các thẻ khoảnh khắc thành một cột trên màn hình nhỏ. */
-    .memory-cards {
-        grid-template-columns: 1fr;
+    .feature-card {
+        padding: 26px 22px;
     }
 
     .section-tabs a {

@@ -40,7 +40,7 @@
         const headers = new Headers(settings.headers || {});
         headers.set("Accept", "application/json");
 
-        if (settings.body !== undefined) {
+        if (settings.body !== undefined && !(settings.body instanceof FormData)) {
             headers.set("Content-Type", "application/json");
         }
         if (!["GET", "HEAD", "OPTIONS"].includes(method)) {

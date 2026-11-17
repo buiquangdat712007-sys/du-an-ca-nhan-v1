@@ -1,9 +1,11 @@
 import os
 import tempfile
 import unittest
+from io import BytesIO
 from pathlib import Path
 from unittest.mock import patch
 
+from PIL import Image
 from sqlalchemy import create_engine, text
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.engine import URL
@@ -68,7 +70,7 @@ class AuthenticationFlowTests(unittest.TestCase):
         self.assertIn("/frontend/html/dang-nhap.html", account_response.headers["location"])
 
     def test_javascript_assets_are_not_cached(self):
-        for path in ("/js/dien-dan.js", "/frontend/js/trang-chu.js"):
+        for path in ("/js/dien-dan.js", "/js/dien-dan-cap-do.js", "/frontend/js/trang-chu.js"):
             with self.subTest(path=path):
                 response = self.client.get(path)
                 self.assertEqual(response.status_code, 200)
@@ -83,7 +85,14 @@ class AuthenticationFlowTests(unittest.TestCase):
         account_page = self.client.get("/frontend/html/trang-chu.html")
         self.assertEqual(account_page.status_code, 200)
         self.assertIn("account-display-name", account_page.text)
+        self.assertIn('<h1 id="account-display-name">', account_page.text)
+        self.assertIn('id="account-avatar-upload"', account_page.text)
+        self.assertIn('id="account-avatar-input"', account_page.text)
         self.assertIn("account-role", account_page.text)
+        self.assertIn('id="account-post-count"', account_page.text)
+        self.assertIn('id="account-like-count"', account_page.text)
+        self.assertIn('id="account-level-value"', account_page.text)
+        self.assertIn('src="../../js/dien-dan-cap-do.js"', account_page.text)
         self.assertIn("account-achievements", account_page.text)
         self.assertNotIn("account-username", account_page.text)
         self.assertNotIn("account-created-at", account_page.text)
@@ -97,6 +106,65 @@ class AuthenticationFlowTests(unittest.TestCase):
             self.assertEqual(user.role, "user")
             self.assertNotEqual(user.password_hash, "a-strong-password")
             self.assertTrue(PasswordHash.recommended().verify("a-strong-password", user.password_hash))
+
+    def test_authenticated_user_can_upload_and_retrieve_avatar(self):
+        registration = self._register("avatar_member")
+        self.assertEqual(registration.status_code, 201)
+        self.assertIsNone(self.client.get("/api/auth/me").json()["avatar_url"])
+        self.assertEqual(self.client.get("/api/auth/avatar").status_code, 404)
+
+        image_buffer = BytesIO()
+        Image.new("RGB", (32, 32), (240, 120, 40)).save(image_buffer, format="PNG")
+        upload_response = self.client.post(
+            "/api/auth/avatar",
+            headers=self._csrf_headers(),
+            files={"file": ("avatar.png", image_buffer.getvalue(), "image/png")},
+        )
+
+        self.assertEqual(upload_response.status_code, 200)
+        self.assertEqual(upload_response.json()["avatar_url"], "/api/auth/avatar")
+        avatar_response = self.client.get("/api/auth/avatar")
+        self.assertEqual(avatar_response.status_code, 200)
+        self.assertEqual(avatar_response.headers["content-type"], "image/webp")
+        self.assertEqual(avatar_response.headers["cache-control"], "no-store")
+        self.assertTrue(avatar_response.content.startswith(b"RIFF"))
+        self.assertEqual(avatar_response.content[8:12], b"WEBP")
+
+        with SessionLocal() as database:
+            user = database.query(User).filter_by(username="avatar_member").one()
+            self.assertIsNotNone(user.avatar_data)
+
+    def test_avatar_upload_rejects_unsupported_and_oversized_files(self):
+        registration = self._register("invalid_avatar_member")
+        self.assertEqual(registration.status_code, 201)
+
+        missing_csrf_response = self.client.post(
+            "/api/auth/avatar",
+            files={"file": ("avatar.png", b"invalid image", "image/png")},
+        )
+        self.assertEqual(missing_csrf_response.status_code, 403)
+
+        image_buffer = BytesIO()
+        Image.new("RGB", (16, 16), (20, 40, 60)).save(image_buffer, format="GIF")
+        unsupported_response = self.client.post(
+            "/api/auth/avatar",
+            headers=self._csrf_headers(),
+            files={"file": ("avatar.gif", image_buffer.getvalue(), "image/gif")},
+        )
+        self.assertEqual(unsupported_response.status_code, 415)
+
+        oversized_response = self.client.post(
+            "/api/auth/avatar",
+            headers=self._csrf_headers(),
+            files={
+                "file": (
+                    "avatar.png",
+                    b"x" * (5 * 1024 * 1024 + 1),
+                    "image/png",
+                )
+            },
+        )
+        self.assertEqual(oversized_response.status_code, 413)
 
     def test_forum_composer_uses_the_logged_in_display_name(self):
         registration = self._register("forum_author")

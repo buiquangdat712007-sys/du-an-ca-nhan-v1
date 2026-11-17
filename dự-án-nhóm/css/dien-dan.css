@@ -1147,13 +1147,6 @@
     color: #FDBA74;
 }
 
-.forum-page footer {
-    margin-top: 0;
-    border-top: 1px solid #252B3C;
-    background: #090D18;
-    color: #A1A1AA;
-}
-
 @media (max-width: 900px) {
     .forum-hub-layout {
         grid-template-columns: minmax(0, 1fr);
@@ -1447,6 +1440,24 @@
     font-size: 13px;
     text-overflow: ellipsis;
     white-space: nowrap;
+}
+
+.ranking-identity {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    gap: 7px;
+}
+
+.ranking-level {
+    flex: 0 0 auto;
+    padding: 3px 6px;
+    border: 1px solid rgba(251, 146, 60, 0.28);
+    border-radius: 999px;
+    background: rgba(249, 115, 22, 0.12);
+    color: #FDBA74;
+    font-size: 9px;
+    font-weight: 800;
 }
 
 .ranking-score {
@@ -1818,12 +1829,6 @@
 
 .forum-page .back-link {
     color: #C2410C;
-}
-
-.forum-page footer {
-    border-top-color: #F1E8DE;
-    background: #FFFBF5;
-    color: #78716C;
 }
 
 .ranking-tabs {

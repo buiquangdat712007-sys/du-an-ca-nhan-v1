@@ -68,3 +68,12 @@ def init_db():
                     "CHECK (role IN ('user', 'admin'))"
                 )
             )
+    if "avatar_data" not in user_columns:
+        avatar_column_type = {
+            "postgresql": "BYTEA",
+            "mysql": "MEDIUMBLOB",
+        }.get(engine.dialect.name, "BLOB")
+        with engine.begin() as connection:
+            connection.execute(
+                text(f"ALTER TABLE users ADD COLUMN avatar_data {avatar_column_type}")
+            )

@@ -6,3 +6,5 @@ psycopg[binary]>=3.2,<4.0
 pymysql>=1.1,<2.0
 cryptography>=42.0
 httpx>=0.27,<1.0
+Pillow>=10.4,<13.0
+python-multipart>=0.0.20,<1.0

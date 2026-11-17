@@ -1,11 +1,13 @@
 import hashlib
 import hmac
+from io import BytesIO
 import os
 import secrets
 import time
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
+from fastapi import APIRouter, Depends, File, HTTPException, Request, Response, UploadFile, status
+from PIL import Image, ImageOps, UnidentifiedImageError
 from pwdlib import PasswordHash
 from sqlalchemy import func
 from sqlalchemy.exc import IntegrityError
@@ -23,10 +25,61 @@ CSRF_COOKIE = "orange_csrf"
 SESSION_TTL_DAYS = max(1, int(os.environ.get("SESSION_TTL_DAYS", "7")))
 SESSION_MAX_AGE = SESSION_TTL_DAYS * 24 * 60 * 60
 COOKIE_SECURE = os.environ.get("AUTH_COOKIE_SECURE", "false").lower() == "true"
+MAX_AVATAR_UPLOAD_BYTES = 5 * 1024 * 1024
+MAX_AVATAR_PIXELS = 20_000_000
+MAX_AVATAR_OUTPUT_BYTES = 256 * 1024
 
 
 def _token_digest(token: str) -> str:
     return hashlib.sha256(token.encode("utf-8")).hexdigest()
+
+
+def _process_avatar(image_data: bytes) -> bytes:
+    try:
+        with Image.open(BytesIO(image_data)) as image:
+            if image.format not in {"JPEG", "PNG", "WEBP"}:
+                raise HTTPException(
+                    status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
+                    detail="Chỉ hỗ trợ ảnh PNG, JPEG hoặc WebP.",
+                )
+            if getattr(image, "n_frames", 1) > 1:
+                raise HTTPException(
+                    status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
+                    detail="Vui lòng chọn ảnh tĩnh.",
+                )
+            if image.width * image.height > MAX_AVATAR_PIXELS:
+                raise HTTPException(
+                    status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+                    detail="Kích thước ảnh quá lớn.",
+                )
+            image.verify()
+
+        with Image.open(BytesIO(image_data)) as image:
+            avatar = ImageOps.exif_transpose(image)
+            avatar.thumbnail((256, 256), Image.Resampling.LANCZOS)
+            if "A" in avatar.getbands() or "transparency" in avatar.info:
+                transparent_avatar = avatar.convert("RGBA")
+                avatar = Image.new("RGB", avatar.size, (255, 247, 237))
+                avatar.paste(transparent_avatar, mask=transparent_avatar.getchannel("A"))
+            else:
+                avatar = avatar.convert("RGB")
+            output = BytesIO()
+            avatar.save(output, format="WEBP", quality=82, method=6)
+            processed = output.getvalue()
+    except HTTPException:
+        raise
+    except (UnidentifiedImageError, OSError, ValueError, Image.DecompressionBombError) as error:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Tệp tải lên không phải ảnh hợp lệ.",
+        ) from error
+
+    if len(processed) > MAX_AVATAR_OUTPUT_BYTES:
+        raise HTTPException(
+            status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+            detail="Ảnh sau khi xử lý vẫn quá lớn.",
+        )
+    return processed
 
 
 def _check_csrf(request: Request):
@@ -171,6 +224,40 @@ def current_user(
 ):
     response.headers["Cache-Control"] = "no-store"
     return UserRead.model_validate(user)
+
+
+@router.post("/avatar", response_model=UserRead)
+async def upload_avatar(
+    request: Request,
+    file: Annotated[UploadFile, File()],
+    user: Annotated[User, Depends(get_current_user)],
+    database: Annotated[Session, Depends(get_db)],
+):
+    _check_csrf(request)
+    image_data = await file.read(MAX_AVATAR_UPLOAD_BYTES + 1)
+    if len(image_data) > MAX_AVATAR_UPLOAD_BYTES:
+        raise HTTPException(
+            status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+            detail="Ảnh tải lên không được vượt quá 5 MB.",
+        )
+
+    user.avatar_data = _process_avatar(image_data)
+    database.commit()
+    database.refresh(user)
+    return UserRead.model_validate(user)
+
+
+@router.get("/avatar")
+def get_avatar(
+    response: Response,
+    user: Annotated[User, Depends(get_current_user)],
+):
+    if user.avatar_data is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Tài khoản chưa có avatar.")
+
+    response.headers["Cache-Control"] = "no-store"
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    return Response(content=user.avatar_data, media_type="image/webp", headers=response.headers)
 
 
 @router.post("/logout", status_code=status.HTTP_204_NO_CONTENT)

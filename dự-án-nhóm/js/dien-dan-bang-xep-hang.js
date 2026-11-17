@@ -181,7 +181,8 @@ function readMembers(posts) {
     });
 
     return Array.from(members.values()).map(function(member) {
-        member.points = member.posts * 10 + member.likes + member.commentsPosted * 2;
+        member.points = window.OrangeForumProgression.getPoints(member);
+        member.level = window.OrangeForumProgression.getLevel(member.points);
         member.badges = badgeRules.filter(function(badge) {
             return badge.earnedBy(member);
         });
@@ -347,6 +348,14 @@ function createRankingEntry(member, index, ranking) {
     name.className = "ranking-name";
     name.textContent = member.name;
 
+    const level = document.createElement("span");
+    level.className = "ranking-level";
+    level.textContent = "Cấp " + member.level.number;
+
+    const identity = document.createElement("div");
+    identity.className = "ranking-identity";
+    identity.append(name, level);
+
     const score = document.createElement("span");
     score.className = "ranking-score";
 
@@ -362,7 +371,7 @@ function createRankingEntry(member, index, ranking) {
         score.textContent = member.posts + " bài viết";
     }
 
-    entry.append(rank, name, score);
+    entry.append(rank, identity, score);
     return entry;
 }
 

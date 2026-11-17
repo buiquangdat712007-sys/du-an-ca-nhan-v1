@@ -23,6 +23,7 @@ class UserRead(BaseModel):
     username: str
     display_name: str
     role: Literal["user", "admin"]
+    avatar_url: str | None = None
     created_at: datetime
 
 

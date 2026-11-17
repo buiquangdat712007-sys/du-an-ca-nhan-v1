@@ -8,11 +8,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Trang chủ - Orange Team</title>
     <!-- Nạp giao diện dùng chung trước, sau đó nạp phần định dạng riêng của trang chủ. -->
-    <link rel="stylesheet" href="../css/chung.css">
-    <link rel="stylesheet" href="../css/trang-chu.css?v=20261117-2">
+    <link rel="stylesheet" href="../css/chung.css?v=20261117-account-avatar">
+    <link rel="stylesheet" href="../css/trang-chu.css?v=20261117-3">
     <!-- defer trì hoãn thực thi đến khi HTML được phân tích xong; chung.js xử lý chức năng dùng chung. -->
+    <script src="../frontend/js/auth.js" defer></script>
     <script src="../js/chung.js" defer></script>
-    <script src="../js/khoanh-khac.js" defer></script>
 </head>
 <body>
 
@@ -37,7 +37,7 @@
 </header>
 
 
-<!-- Nội dung chính của trang, gồm phần mở đầu, giới thiệu, kỷ niệm và lời mời tham gia. -->
+<!-- Nội dung chính của trang, gồm phần mở đầu, giới thiệu chức năng và lời mời tham gia. -->
 <main>
     <!-- Phần mở đầu nổi bật: giới thiệu tên nhóm, lời chào và lối tắt đến thành viên/diễn đàn. -->
     <section class="hero">
@@ -69,7 +69,8 @@
 
     <nav class="section-tabs" aria-label="Điều hướng nội dung trang chủ">
         <a href="#about-section">Về chúng tôi</a>
-        <a href="#memories-section">Khoảnh khắc</a>
+        <a href="#members-section">Thành viên</a>
+        <a href="#forum-section">Diễn đàn</a>
     </nav>
 
     <!-- Giới thiệu nhóm và các giá trị chính qua những thẻ nội dung. -->
@@ -113,51 +114,42 @@
         </div>
     </section>
 
-    <!-- Bộ sưu tập khoảnh khắc; bấm từng thẻ để mở ảnh và mô tả trong hộp thoại. -->
-    <section class="memories" id="memories-section">
-        <!-- Tiêu đề và câu giới thiệu của bộ sưu tập. -->
+    <!-- Phần riêng giới thiệu chức năng thành viên. -->
+    <section class="features" id="members-section">
         <div class="section-title">
-            <span>OUR MEMORIES</span>
-            <h2>KHOẢNH KHẮC ĐÁNG NHỚ</h2>
-            <p>Cùng nhau trò chuyện, giải trí và tạo nên những kỷ niệm đáng quên nào </p>
+            <span>Meet the Members</span>
+            <h2>TÌM HIỂU THÀNH VIÊN</h2>
+            <p>Tìm hiểu những gương mặt và cá tính tạo nên Orange's House.</p>
         </div>
 
-        <!-- Mỗi nút chứa icon, tên và dữ liệu dùng để tạo nội dung hộp thoại. -->
-        <div class="memory-cards">
-            <button class="memory-card" type="button"
-                data-images="../Images/home.png"
-                data-title="Những cuộc trò chuyện"
-                data-description="Chia sẻ câu chuyện và tiếng cười mỗi ngày.">
-                <span class="memory-icon" aria-hidden="true">💬</span>
-                <span class="memory-card-label">Những cuộc trò chuyện</span>
-            </button>
+        <article class="feature-card">
+            <div class="feature-icon" aria-hidden="true">👥</div>
+            <div class="feature-copy">
+                <span class="feature-label">KẾT NỐI CỘNG ĐỒNG</span>
+                <h3>Khám phá các thành viên</h3>
+                <p>Xem danh sách thành viên, tìm hiểu biệt danh, vai trò, sở thích và phần giới thiệu của từng người. Nhấn vào hồ sơ để xem chi tiết; thành viên được phân quyền còn có thể thêm hoặc cập nhật thông tin.</p>
+                <a class="feature-link" href="thanh-vien-nhom.html">Xem trang thành viên <span aria-hidden="true">→</span></a>
+            </div>
+        </article>
+    </section>
 
-            <button class="memory-card" type="button"
-                data-images="../Images/khoanhkhacv2.img"
-                data-title="Giờ giải trí cùng nhau"
-                data-description="Kết nối qua những trò chơi và sở thích chung.">
-                <span class="memory-icon" aria-hidden="true">🎮</span>
-                <span class="memory-card-label">Giờ giải trí cùng nhau</span>
-            </button>
-
-            <button class="memory-card" type="button"
-                data-images="../Images/khoanhkhacv3.img"
-                data-title="Tình bạn Orange's House"
-                data-description="Mỗi thành viên góp thêm một sắc màu cho gia đình.">
-                <span class="memory-icon" aria-hidden="true">🧡</span>
-                <span class="memory-card-label">Tình bạn Orange's House</span>
-            </button>
+    <!-- Phần riêng giới thiệu chi tiết các khu vực và hoạt động trên diễn đàn. -->
+    <section class="features features-forum" id="forum-section">
+        <div class="section-title">
+            <span>Explore the Forum</span>
+            <h2>KHÁM PHÁ DIỄN ĐÀN</h2>
+            <p>Nơi mọi người cùng đăng bài, trò chuyện và ghi nhận đóng góp.</p>
         </div>
 
-        <!-- Hộp thoại dùng chung; JavaScript cập nhật tiêu đề, mô tả và danh sách ảnh khi mở. -->
-        <dialog class="memory-dialog" aria-labelledby="memory-dialog-title">
-            <!-- Nút đóng hộp thoại, có nhãn hỗ trợ công nghệ đọc màn hình. -->
-            <button class="memory-dialog-close" type="button" aria-label="Đóng">×</button>
-            <!-- JavaScript chèn tiêu đề, mô tả và ảnh vào các vùng này. -->
-            <h3 id="memory-dialog-title"></h3>
-            <p class="memory-dialog-description"></p>
-            <div class="memory-dialog-gallery"></div>
-        </dialog>
+        <article class="feature-card">
+            <div class="feature-icon" aria-hidden="true">💬</div>
+            <div class="feature-copy">
+                <span class="feature-label">CHIA SẺ VÀ TRÒ CHUYỆN</span>
+                <h3>Cùng tham gia cộng đồng</h3>
+                <p>Đăng bài vào các phòng Liên Quân, Làng Vịt và Mobile Legends; đọc, thích và bình luận bài viết. Diễn đàn còn có bộ lọc bài đăng, bảng xếp hạng và danh hiệu ghi nhận đóng góp của thành viên.</p>
+                <a class="feature-link" href="dien-dan/dien-dan.html">Khám phá diễn đàn <span aria-hidden="true">→</span></a>
+            </div>
+        </article>
     </section>
 
     <!-- Lời kêu gọi cuối trang, khuyến khích thành viên tham gia chia sẻ trên diễn đàn. -->
